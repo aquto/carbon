@@ -123,6 +123,8 @@ class AMQPGraphiteProtocol(AMQClient):
                 else:
                     value, timestamp = line.split()
                 datapoint = ( float(timestamp), float(value) )
+                if datapoint[1] != datapoint[1]:  # filter out NaN values
+                    continue
             except ValueError:
                 log.listener("invalid message line: %s" % (line,))
                 continue
@@ -156,6 +158,7 @@ class AMQPReconnectingFactory(ReconnectingClientFactory):
         self.verbose = verbose
 
     def buildProtocol(self, addr):
+        self.resetDelay()
         p = self.protocol(self.delegate, self.vhost, self.spec)
         p.factory = self
         return p
